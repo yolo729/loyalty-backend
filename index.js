@@ -9,6 +9,7 @@ const apiUrl = process.env.MY_DOMAIN;
 const Port = process.env.PORT;
 const ENV = process.env.ENV;
 
+
 dotenv.config();
 const app = express();
 
@@ -24,6 +25,10 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(router);
 
+app.get("/", (req, res) => {
+    res.send("Running Server");
+  });
+  
 app.listen(Port, ENV == "dev" ? "127.0.0.1" : "0.0.0.0", ()=> console.log('Server running at port 5000'));
 
 
