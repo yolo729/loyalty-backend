@@ -5,10 +5,14 @@ import jwt from "jsonwebtoken";
 
 export const getUsers = async (req, res) => {
     try {
-        const users = await Users.findAll({
-            attributes: ['id', 'name', 'email']
+        const user = await Users.findOne({
+            where: {
+                id: req
+            },
+            include: UserData
         });
-        res.json(users);
+        
+        res.json(user);
     } catch (error) {
         console.log(error);
     }
@@ -20,7 +24,7 @@ export const Register = async (req, res) => {
     const hashPassword = await bcrypt.hash(password, salt);
     try {
         const insertUser = await Users.create({
-            name: firstname + lastname,
+            name: firstname + " " + lastname,
             email: email,
             password: hashPassword
         });
@@ -52,10 +56,13 @@ export const Login = async (req, res) => {
         });
         const match = await bcrypt.compare(req.body.password, user[0].password);
         if (!match) return res.status(400).json({ msg: "Wrong Password" });
-        // const userId = user[0].id;
-        // const name = user[0].name;
-        const email = user[0].email;
-        const accessToken = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET, {
+        const payload = {
+            userId: user[0].id,
+            name: user[0].name,
+            email: user[0].email
+        }
+        const secretkey = process.env.ACCESS_TOKEN_SECRET;
+        const accessToken = jwt.sign({ payload }, secretkey, {
             expiresIn: '1h'
         });
         // const refreshToken = jwt.sign({ userId, name, email }, process.env.REFRESH_TOKEN_SECRET, {

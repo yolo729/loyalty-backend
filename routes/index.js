@@ -7,7 +7,11 @@ const router = express.Router();
 
 router.post('/users', Register);
 router.post('/login', Login);
-router.get('/users', getUsers);
+router.get('/users/:user_id', (req, res) => {
+    const user_id = req.params.user_id;
+    return getUsers(user_id, res);
+});
+
 router.get('/token', refreshToken);
 router.delete('/logout', Logout);
 

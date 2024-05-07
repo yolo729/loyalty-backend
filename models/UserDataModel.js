@@ -5,7 +5,11 @@ const { DataTypes } = Sequelize;
 
 const UserData = db.define('user_data', {
     user_id: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
+        references: {
+            model: "Users",
+            key: 'id'
+        }
     },
     birthday: {
         type: DataTypes.DATE
@@ -40,5 +44,14 @@ const UserData = db.define('user_data', {
 }, {
     freezeTableName: true
 });
+
+let Users; // Declare the Users variable
+
+// Import the Users model asynchronously
+import("./UserModel.js").then((module) => {
+    Users = module.default;
+    UserData.belongsTo(Users,{ foreignKey:'user_id', as: 'user'});
+});
+
 
 export default UserData;
