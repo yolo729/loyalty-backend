@@ -4,32 +4,35 @@ import UserData from "./UserDataModel.js";
 
 const { DataTypes } = Sequelize;
 
-const Users = db.define('users', {
-    name: {
-        type: DataTypes.STRING
+const Users = db.define(
+  "users",
+  {
+    firstName: {
+      type: DataTypes.STRING,
+    },
+    lastName: {
+      type: DataTypes.STRING,
     },
     email: {
-        type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
     password: {
-        type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
-    // refresh_token: {
-    //     type: DataTypes.TEXT
-    // },
     createdAt: {
-        type: DataTypes.DATE,
-        field: 'created_at' // This sets the column label as 'created_at'
+      type: DataTypes.DATE,
+      field: "created_at",
     },
     updatedAt: {
-        type: DataTypes.DATE,
-        field: 'updated_at' // This sets the column label as 'updated_at'
+      type: DataTypes.DATE,
+      field: "updated_at",
     },
+  },
+  {
+    freezeTableName: true,
+  }
+);
 
-}, {
-    freezeTableName: true
-});
-
-Users.hasMany(UserData, { foreignKey: 'user_id' }); 
+Users.hasMany(UserData, { foreignKey: "user_id" });
 
 export default Users;
