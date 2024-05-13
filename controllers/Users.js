@@ -116,6 +116,7 @@ export const Register = async (req, res) => {
       lastName: lastname,
       email: email,
       password: hashPassword,
+      signOption: 0,
     });
 
     await UserData.create({
@@ -136,6 +137,51 @@ export const Register = async (req, res) => {
 };
 
 export const Login = async (req, res) => {
+  try {
+    const user = await Users.findAll({
+      where: {
+        email: req.body.email,
+      },
+    });
+    const match = await bcrypt.compare(req.body.password, user[0].password);
+    if (!match) return res.status(400).json({ msg: "Wrong Password" });
+    const payload = {
+      userId: user[0].id,
+      firstName: user[0].firstName,
+      lastName: user[0].lastName,
+      email: user[0].email,
+    };
+    const secretkey = process.env.ACCESS_TOKEN_SECRET;
+    const accessToken = jwt.sign({ payload }, secretkey, {
+      expiresIn: "1h",
+    });
+    res.json({ accessToken });
+  } catch (error) {
+    res.status(404).json({ msg: "Email tidak ditemukan" });
+  }
+};
+
+export const getGoogleAuth = async (req, res) => {
+  const { reCAPTCHA_TOKEN, Secret_Key } = req.body;
+  try {
+    let response = await axios.post(
+      `https://www.google.com/recaptcha/api/siteverify?secret=${Secret_Key}&response=${reCAPTCHA_TOKEN}`
+    );
+    return res.status(200).json({
+      success: true,
+      message: "Token successfully verified",
+      verification_info: response.data,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error verifying token",
+    });
+  }
+};
+
+export const googleLogin = async (req, res) => {
   try {
     const user = await Users.findAll({
       where: {

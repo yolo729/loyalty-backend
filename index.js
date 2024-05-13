@@ -25,6 +25,11 @@ app.use(
     methods: ["GET", "POST", "PUT", "DELETE"],
   })
 );
+
+app.get("/", (req, res) => {
+  res.send("Running Server");
+});
+
 app.use(cookieParser());
 app.use(express.json());
 app.use(router);

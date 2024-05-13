@@ -27,6 +27,10 @@ const Users = db.define(
       type: DataTypes.DATE,
       field: "updated_at",
     },
+    signOption: {
+      type: DataTypes.STRING,
+      field: "signOption",
+    },
   },
   {
     freezeTableName: true,
