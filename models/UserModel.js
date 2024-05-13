@@ -31,6 +31,10 @@ const Users = db.define(
       type: DataTypes.STRING,
       field: "signOption",
     },
+    DeleteReason: {
+      type: DataTypes.STRING,
+      field: "DeleteReason",
+    },
   },
   {
     freezeTableName: true,

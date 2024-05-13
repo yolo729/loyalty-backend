@@ -1,6 +1,6 @@
 import express from "express";
 import axios from "axios";
-import { getUsers, Register, Login, Logout } from "../controllers/Users.js";
+import { getUsers, Register, Login, deleteUser } from "../controllers/Users.js";
 import { getGoogleAuth, getGoogleRefreshToken } from "../controllers/Auth.js";
 import { verifyToken } from "../middleware/VerifyToken.js";
 import { refreshToken } from "../controllers/RefreshToken.js";
@@ -16,6 +16,7 @@ router.get("/api/users/:user_id", (req, res) => {
   return getUsers(user_id, res);
 });
 
+router.put("/api/delete", deleteUser);
 router.post("/api/verify-token", async (req, res) => {
   const { reCAPTCHA_TOKEN, Secret_Key } = req.body;
   try {

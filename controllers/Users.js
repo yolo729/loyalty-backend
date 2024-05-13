@@ -18,6 +18,37 @@ export const getUsers = async (req, res) => {
   }
 };
 
+export const deleteUser = async (req, res) => {
+  const { reason, user_id } = req.body;
+  try {
+    await Users.update(
+      {
+        DeleteReason: reason,
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        createdAt: "",
+        updatedAt: "",
+      },
+      {
+        where: {
+          id: user_id,
+        },
+      }
+    );
+    // Perform any necessary operations with updated user data
+    // For example, delete the user from the database
+
+    // Respond with success message
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.log(error);
+    // Handle errors
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 export const updateUser = async (req, res) => {
   try {
     const {
