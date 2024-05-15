@@ -7,8 +7,8 @@ import { refreshToken } from "../controllers/RefreshToken.js";
 
 const router = express.Router();
 
-router.post("/api/users", Register);
-router.post("/api/login", Login);
+router.post("/api/signup", Register);
+router.post("/api/signin", Login);
 router.post("/api/auth/google", getGoogleAuth);
 router.post("/api/auth/google/refresh-token", getGoogleRefreshToken);
 router.get("/api/users/:user_id", (req, res) => {

@@ -14,7 +14,7 @@ export const getUsers = async (req, res) => {
 
     res.json(user);
   } catch (error) {
-    console.log(error);
+    console.log("getuser----------", error);
   }
 };
 
@@ -43,7 +43,7 @@ export const deleteUser = async (req, res) => {
     // Respond with success message
     res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
-    console.log(error);
+    console.log("delete user------", error);
     // Handle errors
     res.status(500).json({ message: "Internal Server Error" });
   }
@@ -70,7 +70,7 @@ export const updateUser = async (req, res) => {
     let user = await Users.findByPk(id, { include: UserData });
 
     if (!user) {
-      console.log("asdfasdf");
+      console.log("User not found");
       return res.status(404).json({ msg: "User not found" });
     }
     // Update user's data
@@ -120,7 +120,7 @@ export const updateUser = async (req, res) => {
 
     res.json({ msg: "User updated successfully", user: user });
   } catch (error) {
-    console.log(error);
+    console.log("Update user-----------", error);
     res.status(500).json({ msg: "Internal Server Error" });
   }
 };
@@ -142,12 +142,20 @@ export const Register = async (req, res) => {
   const salt = await bcrypt.genSalt();
   const hashPassword = await bcrypt.hash(password, salt);
   try {
+    const zinrelo_payload = {
+      member_id: email,
+      email_address: email,
+      first_name: firstname,
+      last_name: lastname,
+    };
+    const zinrelo_token = await createZinreloToken(zinrelo_payload);
     const insertUser = await Users.create({
       firstName: firstname,
       lastName: lastname,
       email: email,
       password: hashPassword,
       signOption: 0,
+      zinreloToken: zinrelo_token,
     });
 
     await UserData.create({
@@ -161,9 +169,9 @@ export const Register = async (req, res) => {
       postcode: postcode,
     });
 
-    res.json({ msg: "Register Berhasil" });
+    res.json({ msg: "User was registerd succesfully!" });
   } catch (error) {
-    console.log(error);
+    console.log("Register------------", error);
   }
 };
 
@@ -178,32 +186,25 @@ const createZinreloToken = async (user_info) => {
 
 export const Login = async (req, res) => {
   try {
-    const user = await Users.findAll({
+    const user = await Users.findOne({
       where: {
         email: req.body.email,
       },
     });
-    const match = await bcrypt.compare(req.body.password, user[0].password);
+    const match = await bcrypt.compare(req.body.password, user.password);
     if (!match) return res.status(400).json({ msg: "Wrong Password" });
     const payload = {
-      userId: user[0].id,
-      firstName: user[0].firstName,
-      lastName: user[0].lastName,
-      email: user[0].email,
+      userId: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      zinrelo_token: user.zinreloToken,
     };
     const secretkey = process.env.ACCESS_TOKEN_SECRET;
     const accessToken = jwt.sign({ payload }, secretkey, {
       expiresIn: "1h",
     });
-    const zinrelo_payload = {
-      member_id: user[0].email,
-      email_address: user[0].email,
-      first_name: user[0].firstName,
-      last_name: user[0].lastName,
-    };
-    console.log("zinrelo_payload", zinrelo_payload);
-    const zinrelo = await createZinreloToken(zinrelo_payload);
-    res.json({ accessToken, zinrelo });
+    res.json({ accessToken });
   } catch (error) {
     res.status(404).json({ msg: "Email tidak ditemukan" });
   }
@@ -221,7 +222,7 @@ export const getGoogleAuth = async (req, res) => {
       verification_info: response.data,
     });
   } catch (error) {
-    console.log(error);
+    console.log("google login error----------", error);
     return res.status(500).json({
       success: false,
       message: "Error verifying token",

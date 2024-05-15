@@ -35,6 +35,10 @@ const Users = db.define(
       type: DataTypes.STRING,
       field: "DeleteReason",
     },
+    zinreloToken: {
+      type: DataTypes.STRING,
+      field: "zinrelo_token",
+    },
   },
   {
     freezeTableName: true,
