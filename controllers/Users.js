@@ -167,6 +167,15 @@ export const Register = async (req, res) => {
   }
 };
 
+const createZinreloToken = async (user_info) => {
+  const secret = process.env.ZINRELO_API_KEY;
+  const encoded_jwt = jwt.sign(user_info, secret, {
+    algorithm: "HS256",
+    noTimestamp: true,
+  });
+  return encoded_jwt;
+};
+
 export const Login = async (req, res) => {
   try {
     const user = await Users.findAll({
@@ -186,7 +195,15 @@ export const Login = async (req, res) => {
     const accessToken = jwt.sign({ payload }, secretkey, {
       expiresIn: "1h",
     });
-    res.json({ accessToken });
+    const zinrelo_payload = {
+      member_id: user[0].email,
+      email_address: user[0].email,
+      first_name: user[0].firstName,
+      last_name: user[0].lastName,
+    };
+    console.log("zinrelo_payload", zinrelo_payload);
+    const zinrelo = await createZinreloToken(zinrelo_payload);
+    res.json({ accessToken, zinrelo });
   } catch (error) {
     res.status(404).json({ msg: "Email tidak ditemukan" });
   }
