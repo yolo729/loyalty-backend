@@ -7,13 +7,55 @@ const oAuth2Client = new OAuth2Client(
   process.env.CLIENT_SECRET,
   "postmessage"
 );
-export const getGoogleAuth = async (req, res) => {
+export const signinGoogle = async (req, res) => {
   const { tokens } = await oAuth2Client.getToken(req.body.code); // exchange code for tokens
   try {
-    let response = await axios.get(
+    const response = await axios.get(
       `https://oauth2.googleapis.com/tokeninfo?id_token=${tokens.id_token}`
     );
-    const { email, given_name, family_name } = await response.data;
+    const { email, given_name, family_name } = response.data;
+
+    const user = await Users.findOne({
+      where: {
+        email: response.data.email,
+      },
+    });
+
+    if (!user) {
+      console.log(
+        "continue with Google: No user registered with google account"
+      );
+      return res
+        .status(500)
+        .json({ msg: "There is no user registered with google" });
+    } else {
+      if (user.signOption === 1 && user.google_id) {
+        return res.json({ msg: "logined successfuly with google" });
+      } else if (user.signOption === 2 && user.facebook_id) {
+        return res.json({ msg: "logined successfuly with facebook" });
+      } else if (user.signOption === 3 && user.apple_id) {
+        return res.json({ msg: "logined successfuly with Apple" });
+      } else {
+        return res
+          .status(500)
+          .json({ msg: "Already logined with email manually" });
+      }
+    }
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Sign with google error",
+    });
+  }
+};
+
+export const signupGoogle = async (req, res) => {
+  const { tokens } = await oAuth2Client.getToken(req.body.code); // exchange code for tokens
+  try {
+    const response = await axios.get(
+      `https://oauth2.googleapis.com/tokeninfo?id_token=${tokens.id_token}`
+    );
+    const { email, given_name, family_name } = response.data;
 
     const user = await Users.findOne({
       where: {
@@ -27,37 +69,20 @@ export const getGoogleAuth = async (req, res) => {
         lastName: family_name,
         email: email,
         signOption: 1,
+        google_id: 1,
       });
-    } else if (user.signOption === 0) {
-      console.log("alert");
-    } else console.log(user.signOption, "fffff");
-    return;
-
-    if (!user) {
-      return res.status(500).json({
-        success: false,
-        message: "Error",
-      });
+      return res.json({ msg: "User registered" });
+    } else {
+      return res.json({ msg: "Already user registered" });
     }
-
-    // if (user && user.signOption == 1) {
-    //   res.json({ user });
-    // } else {
-    //   if (user.signOption == 0) {
-    //     return res.status(500).json({
-    //       success: false,
-    //       message: "Error",
-    //     });
-    //   }
-
-    // }
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "Error verifying token",
+      message: "Sign with Google error",
     });
   }
 };
+
 export const getGoogleRefreshToken = async (req, res) => {
   const user = new UserRefreshClient(
     clientId,

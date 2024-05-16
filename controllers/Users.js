@@ -191,8 +191,8 @@ export const Register = async (req, res) => {
         first_name: firstname,
         last_name: lastname,
         email_address: email,
-        phone_number: phone,
-        birthdate: formattedDate,
+        // phone_number: phone,
+        // birthdate: formattedDate,
       };
 
       const isAdded = await addZinreloMember(zinrelo_payload);

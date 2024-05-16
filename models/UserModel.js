@@ -33,6 +33,18 @@ const Users = db.define(
       type: DataTypes.STRING,
       field: "signOption",
     },
+    google_id: {
+      type: DataTypes.STRING,
+      field: "google_id",
+    },
+    facebook_id: {
+      type: DataTypes.STRING,
+      field: "facebook_id",
+    },
+    apple_id: {
+      type: DataTypes.STRING,
+      field: "apple_id",
+    },
     DeleteReason: {
       type: DataTypes.STRING,
       field: "DeleteReason",

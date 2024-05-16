@@ -1,7 +1,11 @@
 import express from "express";
 import axios from "axios";
 import { getUsers, Register, Login, deleteUser } from "../controllers/Users.js";
-import { getGoogleAuth, getGoogleRefreshToken } from "../controllers/Auth.js";
+import {
+  signinGoogle,
+  signupGoogle,
+  getGoogleRefreshToken,
+} from "../controllers/Auth.js";
 import { verifyToken } from "../middleware/VerifyToken.js";
 import { refreshToken } from "../controllers/RefreshToken.js";
 
@@ -9,7 +13,8 @@ const router = express.Router();
 
 router.post("/api/signup", Register);
 router.post("/api/signin", Login);
-router.post("/api/auth/google", getGoogleAuth);
+router.post("/api/auth/signinGoogle", signinGoogle);
+router.post("/api/auth/signupGoogle", signupGoogle);
 router.post("/api/auth/google/refresh-token", getGoogleRefreshToken);
 router.get("/api/users/:user_id", (req, res) => {
   const user_id = req.params.user_id;
