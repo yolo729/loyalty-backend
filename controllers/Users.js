@@ -2,6 +2,7 @@ import Users from "../models/UserModel.js";
 import UserData from "../models/UserDataModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import axios from "axios";
 
 export const getUsers = async (req, res) => {
   try {
@@ -125,6 +126,36 @@ export const updateUser = async (req, res) => {
   }
 };
 
+const addZinreloMember = async (data) => {
+  try {
+    const res = await axios.post(
+      "https://api.zinrelo.com/v2/loyalty/members?language=english",
+      data,
+      {
+        headers: {
+          "api-key": process.env.ZINRELO_API_KEY,
+          "partner-id": process.env.ZINRELO_PARTNER_ID,
+        },
+        // timeout: 10000, // Increase timeout to 10 seconds (10000 milliseconds)
+      }
+    );
+    console.log("res---", res);
+    return true;
+  } catch (error) {
+    console.log("res error---", error);
+    return false;
+  }
+};
+
+const isEmailTaken = async (email) => {
+  const user = await Users.findOne({
+    where: {
+      email,
+    },
+  });
+  return !!user;
+};
+
 export const Register = async (req, res) => {
   const {
     firstname,
@@ -139,37 +170,62 @@ export const Register = async (req, res) => {
     province,
     postcode,
   } = await req.body;
-  const salt = await bcrypt.genSalt();
-  const hashPassword = await bcrypt.hash(password, salt);
   try {
-    const zinrelo_payload = {
-      member_id: email,
-      email_address: email,
-      first_name: firstname,
-      last_name: lastname,
-    };
-    const zinrelo_token = await createZinreloToken(zinrelo_payload);
-    const insertUser = await Users.create({
-      firstName: firstname,
-      lastName: lastname,
-      email: email,
-      password: hashPassword,
-      signOption: 0,
-      zinreloToken: zinrelo_token,
-    });
+    const is_email_taken = await isEmailTaken(email);
+    if (is_email_taken === true) {
+      res.status(400).json({ error: "Email already exist" });
+    } else {
+      const salt = await bcrypt.genSalt();
+      const hashPassword = await bcrypt.hash(password, salt);
 
-    await UserData.create({
-      user_id: insertUser.id,
-      birthday: birthday,
-      phone: phone,
-      country: country,
-      address1: address1,
-      address2: address2,
-      province: province,
-      postcode: postcode,
-    });
+      const ex_birthday = new Date(birthday);
+      const formattedDate = ex_birthday
+        .toLocaleDateString("en-US", {
+          month: "2-digit",
+          day: "2-digit",
+          year: "numeric",
+        })
+        .replace(/\//g, "/");
+      const zinrelo_payload = {
+        member_id: email,
+        first_name: firstname,
+        last_name: lastname,
+        email_address: email,
+        phone_number: phone,
+        birthdate: formattedDate,
+      };
 
-    res.json({ msg: "User was registerd succesfully!" });
+      const isAdded = await addZinreloMember(zinrelo_payload);
+      console.log("isadded=---------", isAdded);
+      // const zinrelo_payload = {
+      //   member_id: email,
+      //   email_address: email,
+      //   first_name: firstname,
+      //   last_name: lastname,
+      // };
+      const zinrelo_token = await createZinreloToken(zinrelo_payload);
+      const insertUser = await Users.create({
+        firstName: firstname,
+        lastName: lastname,
+        email: email,
+        password: hashPassword,
+        signOption: 0,
+        zinreloToken: zinrelo_token,
+      });
+
+      await UserData.create({
+        user_id: insertUser.id,
+        birthday: birthday,
+        phone: phone,
+        country: country,
+        address1: address1,
+        address2: address2,
+        province: province,
+        postcode: postcode,
+      });
+
+      res.json({ msg: "User was registered succesfully!" });
+    }
   } catch (error) {
     console.log("Register------------", error);
   }
