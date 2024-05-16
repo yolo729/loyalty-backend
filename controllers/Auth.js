@@ -1,6 +1,8 @@
 import { OAuth2Client } from "google-auth-library";
 import Users from "../models/UserModel.js";
 import axios from "axios";
+import jwt from "jsonwebtoken";
+import { addZinreloMember, createZinreloToken } from "./Users.js";
 
 const oAuth2Client = new OAuth2Client(
   process.env.CLIENT_ID,
@@ -30,7 +32,19 @@ export const signinGoogle = async (req, res) => {
         .json({ msg: "There is no user registered with google" });
     } else {
       if (user.signOption === 1 && user.google_id) {
-        return res.json({ msg: "logined successfuly with google" });
+        const payload = {
+          userId: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          zinrelo_token: user.zinreloToken,
+        };
+        const secretkey = process.env.ACCESS_TOKEN_SECRET;
+        const accessToken = jwt.sign({ payload }, secretkey, {
+          expiresIn: "1h",
+        });
+        res.json({ accessToken });
+        // return res.json({ msg: "Succeed with google" });
       } else if (user.signOption === 2 && user.facebook_id) {
         return res.json({ msg: "logined successfuly with facebook" });
       } else if (user.signOption === 3 && user.apple_id) {
@@ -64,12 +78,23 @@ export const signupGoogle = async (req, res) => {
     });
 
     if (!user) {
+      const zinrelo_payload = {
+        member_id: email,
+        first_name: given_name,
+        last_name: family_name,
+        email_address: email,
+        // phone_number: phone,
+        // birthdate: formattedDate,
+      };
+      const isAdded = await addZinreloMember(zinrelo_payload);
+      const zinrelo_token = await createZinreloToken(zinrelo_payload);
       await Users.create({
         firstName: given_name,
         lastName: family_name,
         email: email,
         signOption: 1,
         google_id: 1,
+        zinreloToken: zinrelo_token,
       });
       return res.json({ msg: "User registered" });
     } else {

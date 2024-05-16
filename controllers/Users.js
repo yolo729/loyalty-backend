@@ -126,7 +126,7 @@ export const updateUser = async (req, res) => {
   }
 };
 
-const addZinreloMember = async (data) => {
+export const addZinreloMember = async (data) => {
   try {
     const res = await axios.post(
       "https://api.zinrelo.com/v2/loyalty/members?language=english",
@@ -186,6 +186,7 @@ export const Register = async (req, res) => {
           year: "numeric",
         })
         .replace(/\//g, "/");
+
       const zinrelo_payload = {
         member_id: email,
         first_name: firstname,
@@ -194,15 +195,7 @@ export const Register = async (req, res) => {
         // phone_number: phone,
         // birthdate: formattedDate,
       };
-
       const isAdded = await addZinreloMember(zinrelo_payload);
-      console.log("isadded=---------", isAdded);
-      // const zinrelo_payload = {
-      //   member_id: email,
-      //   email_address: email,
-      //   first_name: firstname,
-      //   last_name: lastname,
-      // };
       const zinrelo_token = await createZinreloToken(zinrelo_payload);
       const insertUser = await Users.create({
         firstName: firstname,
@@ -231,7 +224,7 @@ export const Register = async (req, res) => {
   }
 };
 
-const createZinreloToken = async (user_info) => {
+export const createZinreloToken = async (user_info) => {
   const secret = process.env.ZINRELO_API_KEY;
   const encoded_jwt = jwt.sign(user_info, secret, {
     algorithm: "HS256",
