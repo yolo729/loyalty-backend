@@ -11,7 +11,7 @@ import { refreshToken } from "../controllers/RefreshToken.js";
 
 const router = express.Router();
 
-router.post("/api/signup", Register);
+router.post("/api/signup", verifyToken, Register);
 router.post("/api/signin", Login);
 router.post("/api/auth/signinGoogle", signinGoogle);
 router.post("/api/auth/signupGoogle", signupGoogle);
